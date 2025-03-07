@@ -1,4 +1,9 @@
 import {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
+import {
   BelongsTo,
   Column,
   DataType,
@@ -17,17 +22,29 @@ export enum PlaylistStatus {
   COMPLETE = 'COMPLETE',
 }
 
+export type Context = {
+  metadata: Record<string, any>;
+  sequence: Slot[];
+};
+
 @Table({ tableName: 'playlists', timestamps: true, underscored: true })
-export class Playlist extends Model<Playlist> {
-  @Column({ primaryKey: true, autoIncrement: true })
-  id: number;
+export class Playlist extends Model<
+  InferAttributes<Playlist>,
+  InferCreationAttributes<Playlist>
+> {
+  @Column({
+    type: DataType.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  })
+  id: CreationOptional<number>;
 
   @ForeignKey(() => Strategy)
-  @Column({ allowNull: false })
+  @Column({ type: DataType.INTEGER, allowNull: false })
   strategies_id: number;
 
   @BelongsTo(() => Strategy)
-  strategy: Strategy;
+  strategy?: Strategy;
 
   @Column({
     type: DataType.ENUM(...Object.values(PlaylistStatus)),
@@ -36,16 +53,22 @@ export class Playlist extends Model<Playlist> {
   status: PlaylistStatus;
 
   @ForeignKey(() => Slot)
-  @Column({ allowNull: true })
+  @Column({ type: DataType.INTEGER, allowNull: true })
   current_slot_id?: number;
 
   @BelongsTo(() => Slot)
   current_slot?: Slot;
 
   @Column({ type: DataType.JSON })
-  context: object;
+  context: Context;
 
   @Index({ unique: true })
-  @Column({ allowNull: false, unique: true })
+  @Column({ type: DataType.STRING(255), allowNull: false, unique: true })
   slug: string;
+
+  @Column({ type: DataType.DATE })
+  created_at: CreationOptional<Date>;
+
+  @Column({ type: DataType.DATE })
+  updated_at: CreationOptional<Date>;
 }

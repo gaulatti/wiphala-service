@@ -18,8 +18,7 @@ module.exports = {
       },
       current_slot_id: {
         type: Sequelize.INTEGER,
-        references: { model: 'slots', key: 'id' },
-        onDelete: 'SET NULL',
+        allowNull: true,
       },
       context: { type: Sequelize.JSON, allowNull: false, defaultValue: {} },
       slug: { type: Sequelize.STRING(100), allowNull: false, unique: true },

@@ -7,11 +7,11 @@ service OrchestratorService {
 }
 
 message PlaylistRequest {
-  string strategy_id = 1;
+  string slug = 1;
   string context = 2;
 }
 
 message PlaylistResponse {
-  string playlist_id = 1;
+  string slug = 1;
   string status = 2;
 }

@@ -1,23 +1,35 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
+import { PlaylistsService } from './playlists/playlists.service';
 
-interface PlaylistRequest {
-  strategy_id: string;
-  context: string;
+/**
+ * The data required to trigger a playlist.
+ */
+export interface PlaylistRequest {
+  slug: string;
+  context: object;
 }
 
-interface PlaylistResponse {
-  playlist_id: string;
+/**
+ * The response of a triggered playlist.
+ */
+export interface PlaylistResponse {
+  slug: string;
   status: string;
 }
 
 @Controller()
 export class OrchestratorController {
+  constructor(private readonly playlistsService: PlaylistsService) {}
+
+  /**
+   * Triggers a playlist based on the provided data.
+   *
+   * @param {PlaylistRequest} data - The data required to trigger the playlist.
+   * @returns {Promise<PlaylistResponse>} A promise that resolves to the response of the triggered playlist.
+   */
   @GrpcMethod('OrchestratorService', 'TriggerPlaylist')
-  triggerPlaylist(data: PlaylistRequest): PlaylistResponse {
-    console.log({ data });
-    const playlistId = 'generated-playlist-id'; // TODO: Replace with actual logic
-    const status = 'CREATED';
-    return { playlist_id: playlistId, status };
+  async triggerPlaylist(data: PlaylistRequest): Promise<PlaylistResponse> {
+    return await this.playlistsService.trigger(data);
   }
 }

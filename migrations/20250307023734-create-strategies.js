@@ -9,6 +9,7 @@ module.exports = {
       name: { type: Sequelize.STRING(255), allowNull: false },
       description: { type: Sequelize.TEXT },
       slug: { type: Sequelize.STRING(100), allowNull: false, unique: true },
+      root_slot: { type: Sequelize.INTEGER, allowNull: false },
       created_at: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.NOW },
       updated_at: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.NOW },
     });
