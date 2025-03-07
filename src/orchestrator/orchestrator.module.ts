@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { ClientFactory } from './client.factory';
 import { OrchestratorController } from './orchestrator.controller';
 
 @Module({
@@ -16,7 +17,8 @@ import { OrchestratorController } from './orchestrator.controller';
       },
     ]),
   ],
-  exports: [ClientsModule],
+  exports: [ClientsModule, ClientFactory],
+  providers: [ClientFactory],
   controllers: [OrchestratorController],
 })
 export class OrchestratorModule {}
