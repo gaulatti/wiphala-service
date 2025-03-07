@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package orchestrator;
+
+service OrchestratorService {
+  rpc TriggerPlaylist (PlaylistRequest) returns (PlaylistResponse);
+}
+
+message PlaylistRequest {
+  string strategy_id = 1;
+  string context = 2;
+}
+
+message PlaylistResponse {
+  string playlist_id = 1;
+  string status = 2;
+}

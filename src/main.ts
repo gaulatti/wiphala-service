@@ -1,25 +1,28 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import { AuthorizationGuard } from './authorization/authorization.guard';
-import { logger } from './utils/logger';
 
 /**
- * Sets the logger for the application to the JsonLogger.
+ * Initializes and starts the NestJS application with Fastify adapter.
+ *
+ * - Creates a new Nest application using the Fastify adapter.
+ * - Enables CORS for the application.
+ * - Registers the global authorization guard.
+ * - Starts the orchestrator gRPC server on port 50051.
+ * - Starts the application and listens on port 3000 for REST API.
+ *
+ * @returns {Promise<void>} A promise that resolves when the application has started.
  */
-Logger.overrideLogger(logger);
-
-/**
- * https://www.youtube.com/watch?v=qA7RgCib8kE
- */
-
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   /**
-   * Creates an instance of the NestJS application using the Fastify adapter.
+   * Create a new Nest application using the Fastify adapter
    */
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -27,16 +30,34 @@ async function bootstrap() {
   );
 
   /**
-   * Enables Cross-Origin Resource Sharing (CORS) for the application.
+   * Enable CORS for the application
    */
   app.enableCors();
 
   /**
-   * Sets the global guard for the application to the AuthorizationGuard.
+   * Register the global authorization guard
    */
-  const reflector = app.get(Reflector);
-  app.useGlobalGuards(new AuthorizationGuard(reflector));
+  app.useGlobalGuards(new AuthorizationGuard(app.get(Reflector)));
 
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  /**
+   * Start the orchestrator gRPC server
+   */
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.GRPC,
+    options: {
+      package: 'orchestrator',
+      protoPath: join(__dirname, './orchestrator/proto/orchestrator.proto'),
+      url: '0.0.0.0:50051',
+    },
+  });
+  await app.startAllMicroservices();
+  Logger.log('🚀 gRPC server running on port 50051');
+
+  /**
+   * Start the application and listen on port 3000
+   */
+  await app.listen(3000, '0.0.0.0');
+  Logger.log('🚀 REST API running on port 3000');
 }
+
 bootstrap();
