@@ -66,7 +66,7 @@ export class PluginsService {
      * Execute the step on the worker service.
      */
     return new Promise((resolve, reject) => {
-      client.executeStep(
+      client.performTask(
         { payload: JSON.stringify(payload) },
         (err, response) => {
           if (err) reject(new Error(err.message));
