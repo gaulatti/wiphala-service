@@ -1,7 +1,14 @@
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
+import { credentials, loadPackageDefinition } from '@grpc/grpc-js';
+import { loadSync } from '@grpc/proto-loader';
 import { Injectable } from '@nestjs/common';
 import { join } from 'path';
+
+export interface WorkerService {
+  executeStep(
+    data: { payload: string },
+    callback: (err: any, res: { success: boolean; result: string }) => void,
+  ): void;
+}
 
 @Injectable()
 export class ClientFactory {
@@ -31,7 +38,7 @@ export class ClientFactory {
     /**
      * Load the proto file and create the gRPC client.
      */
-    const packageDefinition = protoLoader.loadSync(protoPath, {
+    const packageDefinition = loadSync(protoPath, {
       keepCase: true,
       longs: String,
       enums: String,
@@ -42,16 +49,13 @@ export class ClientFactory {
     /**
      * Load the proto file and create the gRPC client.
      */
-    const grpcObject = grpc.loadPackageDefinition(packageDefinition) as any;
+    const grpcObject = loadPackageDefinition(packageDefinition) as any;
     const service = grpcObject[packageName][serviceName];
 
     /**
      * Create the gRPC client.
      */
-    const client = new service(
-      `${host}:${port}`,
-      grpc.credentials.createInsecure(),
-    );
+    const client = new service(`${host}:${port}`, credentials.createInsecure());
 
     return client as T;
   }
