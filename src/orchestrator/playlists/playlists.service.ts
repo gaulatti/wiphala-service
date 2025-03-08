@@ -108,9 +108,6 @@ export class PlaylistsService {
     strategy: Strategy,
     metadata: object = {},
   ): Promise<Playlist> {
-    /**
-     * 1. Generate the playlist manifest.
-     */
     const context: Context = {
       metadata,
       sequence: strategy.slots,
@@ -124,9 +121,6 @@ export class PlaylistsService {
       current_slot_id: strategy.root_slot,
     });
 
-    /**
-     * 2. Start the playlist
-     */
     await this.run(playlist);
 
     return playlist;
@@ -149,7 +143,7 @@ export class PlaylistsService {
     /**
      * Call the `next` method on the `pluginsService` with the playlist.
      */
-    await this.pluginsService.next(playlist);
+    await this.pluginsService.run(playlist);
   }
 
   /**
