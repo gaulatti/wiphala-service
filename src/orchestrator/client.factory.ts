@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { join } from 'path';
 
 export interface WorkerService {
-  executeStep(
+  performTask(
     data: { payload: string },
     callback: (err: any, res: { success: boolean; result: string }) => void,
   ): void;
