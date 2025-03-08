@@ -4,6 +4,7 @@ import { Logger } from 'src/decorators/logger.decorator';
 import { Playlist } from 'src/models/playlist.model';
 import { Plugin } from 'src/models/plugin.model';
 import { JSONLogger } from 'src/utils/logger';
+import { getGrpcTalkbackEndpoint } from 'src/utils/network';
 import { ClientFactory, WorkerService } from '../client.factory';
 
 /**
@@ -95,7 +96,10 @@ export class PluginsService {
     }
 
     try {
-      await this.invokePlugin(current.plugin, playlist);
+      await this.invokePlugin(current.plugin, {
+        playlist,
+        talkback: getGrpcTalkbackEndpoint(),
+      });
     } catch (error) {
       this.logger.error('Error invoking plugin:', error);
     }

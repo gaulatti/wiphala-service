@@ -8,6 +8,7 @@ import {
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { AuthorizationGuard } from './authorization/authorization.guard';
+import { grpcPort } from './utils/network';
 
 /**
  * Initializes and starts the NestJS application with Fastify adapter.
@@ -47,11 +48,11 @@ async function bootstrap(): Promise<void> {
     options: {
       package: 'orchestrator',
       protoPath: join(__dirname, './orchestrator/proto/orchestrator.proto'),
-      url: '0.0.0.0:50051',
+      url: `0.0.0.0:${grpcPort}`,
     },
   });
   await app.startAllMicroservices();
-  Logger.log('🚀 gRPC server running on port 50051');
+  Logger.log(`🚀 gRPC server running on port ${grpcPort}`);
 
   /**
    * Start the application and listen on port 3000
