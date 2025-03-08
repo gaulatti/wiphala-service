@@ -33,7 +33,7 @@ export class ClientFactory {
     /**
      * Load the proto file and create the gRPC client.
      */
-    const protoPath = join(__dirname, 'grpc/proto', protoFile);
+    const protoPath = join(__dirname, 'proto', protoFile);
 
     /**
      * Load the proto file and create the gRPC client.
