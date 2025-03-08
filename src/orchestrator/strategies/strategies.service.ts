@@ -61,7 +61,17 @@ export class StrategiesService {
   async findBySlug(slug: string): Promise<Strategy | null> {
     return this.strategy.findOne({
       where: { slug },
-      include: [{ model: Slot, include: [Plugin] }],
+      include: [
+        {
+          model: Slot,
+          include: [
+            {
+              model: Plugin,
+              attributes: { exclude: ['plugin_key'] },
+            },
+          ],
+        },
+      ],
     });
   }
 }

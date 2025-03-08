@@ -4,6 +4,7 @@ package orchestrator;
 
 service OrchestratorService {
   rpc TriggerPlaylist (PlaylistRequest) returns (PlaylistResponse);
+  rpc SeguePlaylist (PlaylistSegue) returns (PlaylistSegueResponse);
 }
 
 message PlaylistRequest {
@@ -14,4 +15,13 @@ message PlaylistRequest {
 message PlaylistResponse {
   string slug = 1;
   string status = 2;
+}
+
+message PlaylistSegue {
+  string slug = 1;
+  string output = 2;
+}
+
+message PlaylistSegueResponse {
+  bool success = 1;
 }

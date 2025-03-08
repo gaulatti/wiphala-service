@@ -12,5 +12,4 @@ message WorkerRequest {
 
 message WorkerResponse {
   bool success = 1;
-  string result = 2;
 }
