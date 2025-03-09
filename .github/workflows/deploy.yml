@@ -65,14 +65,17 @@ jobs:
 
             # Run the new container
             docker run -d --name wiphala \
-            -p 3003:3000 \
-            -p 50051:50051 \
+            -p ${{ vars.HTTP_PORT }}:${{ vars.HTTP_PORT }} \
+            -p ${{ vars.GRPC_PORT }}:${{ vars.GRPC_PORT }} \
             -e AWS_REGION=${{ vars.AWS_REGION }} \
             -e AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} \
             -e COGNITO_USER_POOL_ID=${{ secrets.COGNITO_USER_POOL_ID }} \
             -e DB_CREDENTIALS="${{ secrets.DB_CREDENTIALS }}" \
             -e DB_DATABASE="${{ secrets.DB_DATABASE }}" \
-            -e SERVICE_FQDN="${{ vars.SERVICE_FQDN }}" \
+            -e SERVICE_FQDN="${{ secrets.SERVICE_FQDN }}" \
+            -e TALKBACK_FQDN="${{ secrets.TALKBACK_FQDN }}" \
+            -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
+            -e GRPC_PORT="${{ vars.GRPC_PORT }}" \
             -e CONTAINERIZED=true \
             --restart=always \
             --log-driver=awslogs \
