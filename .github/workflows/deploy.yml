@@ -76,6 +76,7 @@ jobs:
             -e TALKBACK_FQDN="${{ secrets.TALKBACK_FQDN }}" \
             -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
             -e GRPC_PORT="${{ vars.GRPC_PORT }}" \
+            -e ASSETS_BUCKET_NAME="${{ secrets.ASSETS_BUCKET_NAME }}" \
             -e CONTAINERIZED=true \
             --restart=always \
             --log-driver=awslogs \
