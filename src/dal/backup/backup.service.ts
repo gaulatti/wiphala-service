@@ -12,6 +12,23 @@ import { promisify } from 'util';
 const execPromise = promisify(exec);
 
 /**
+ * Represents the credentials required to connect to a database.
+ *
+ * @property {string} host - The hostname or IP address of the database server.
+ * @property {string} port - The port number on which the database server is listening.
+ * @property {string} username - The username to authenticate with the database.
+ * @property {string} password - The password to authenticate with the database.
+ * @property {string} database - The name of the database to connect to.
+ */
+export type DatabaseCredentials = {
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+  database: string;
+};
+
+/**
  * Service responsible for performing database backups and uploading them to S3.
  */
 @Injectable()
@@ -81,23 +98,15 @@ export class BackupService {
   /**
    * Retrieves the database credentials from AWS Secrets Manager.
    *
-   * @returns {Promise<{ user: string, password: string }>} A promise that resolves to an object containing the database username and password.
-   * @throws Will throw an error if the secret cannot be retrieved or parsed.
+   * @returns {Promise<DatabaseCredentials>} A promise that resolves to the database credentials.
+   * @throws {Error} If there is an issue retrieving or parsing the secret value.
    */
-  private async getDatabaseCredentials(): Promise<{
-    host: string;
-    port: string;
-    username: string;
-    password: string;
-    database: string;
-  }> {
+  private async getDatabaseCredentials(): Promise<DatabaseCredentials> {
     const command = new GetSecretValueCommand({
       SecretId: process.env.DB_CREDENTIALS,
     });
     const response = await this.secretsClient.send(command);
-    const secret = JSON.parse(response.SecretString);
-
-    return secret;
+    return JSON.parse(response.SecretString!) as DatabaseCredentials;
   }
 
   /**
