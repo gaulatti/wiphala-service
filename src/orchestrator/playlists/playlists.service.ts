@@ -4,7 +4,9 @@ import { Logger } from 'src/decorators/logger.decorator';
 import { Context, Playlist, PlaylistStatus } from 'src/models/playlist.model';
 import { Strategy } from 'src/models/strategy.model';
 import { JSONLogger } from 'src/utils/logger';
+import { getHostAndPort } from 'src/utils/network';
 import { nanoid } from '../../utils/nanoid';
+import { ClientFactory, ClientService } from '../client.factory';
 import {
   PlaylistSegue,
   PlaylistSegueResponse,
@@ -41,6 +43,7 @@ export class PlaylistsService {
     @Inject(forwardRef(() => PluginsService))
     private readonly pluginsService: PluginsService,
     private readonly strategiesService: StrategiesService,
+    private readonly clientFactory: ClientFactory,
     @InjectModel(Playlist) private readonly playlist: typeof Playlist,
   ) {}
 
@@ -74,7 +77,7 @@ export class PlaylistsService {
    * @throws {Error} - Throws an error if the strategy with the provided slug does not exist.
    */
   async trigger(data: PlaylistTrigger): Promise<PlaylistTriggerResponse> {
-    const { slug: strategySlug, context } = data;
+    const { slug: strategySlug, context, origin } = data;
 
     const strategy = await this.strategiesService.findBySlug(strategySlug);
 
@@ -88,7 +91,7 @@ export class PlaylistsService {
     /**
      * Start the playlist based on the provided strategy.
      */
-    const { slug, status } = await this.start(strategy, context);
+    const { slug, status } = await this.start(strategy, context, origin);
 
     return {
       slug,
@@ -111,11 +114,13 @@ export class PlaylistsService {
    */
   private async start(
     strategy: Strategy,
-    metadata: object = {},
+    metadata: any,
+    origin: string,
   ): Promise<Playlist> {
     const context: Context = {
-      metadata,
+      metadata: JSON.parse(metadata),
       sequence: strategy.slots,
+      origin,
     };
 
     const playlist = await this.playlist.create({
@@ -164,14 +169,116 @@ export class PlaylistsService {
     });
   }
 
-  async segue(message: PlaylistSegue): Promise<PlaylistSegueResponse> {
+  /**
+   * Handles the segue operation for a playlist.
+   *
+   * This method retrieves the playlist by its slug, updates the context with the output from the segue,
+   * sets the next step in the playlist, and continues the playlist execution if applicable.
+   *
+   * @param {PlaylistSegue} param0 - An object containing the slug of the playlist and the output to update.
+   * @returns {Promise<PlaylistSegueResponse>} - A promise that resolves to a response indicating the success of the operation.
+   * @throws {Error} - Throws an error if the playlist does not exist or if any other error occurs during the operation.
+   */
+  async segue({ slug, output }: PlaylistSegue): Promise<PlaylistSegueResponse> {
     try {
-      console.log(JSON.stringify(message, null, 2));
+      /**
+       * Retrieve the playlist by its slug.
+       */
+      const playlist = await this.getPlaylist(slug);
 
-      return Promise.resolve({ success: true });
+      /**
+       * Throw an error if the playlist does not exist.
+       */
+      if (!playlist) {
+        throw new Error(`Playlist with slug ${slug} not found.`);
+      }
+
+      /**
+       * Get the current slot in the playlist.
+       */
+      const currentSlot = playlist.context.sequence.findIndex(
+        (item) => item.id === playlist.current_slot_id,
+      );
+
+      /**
+       * Update the context with the output from the segue.
+       */
+      playlist.context.sequence[currentSlot].output = output;
+
+      const nextSlot =
+        playlist.context.sequence[currentSlot].default_next_slot_id;
+
+      /**
+       * Set the next step in the playlist.
+       *
+       * If the next slot is null, mark the playlist as complete.
+       */
+      playlist.current_slot_id = nextSlot;
+      if (nextSlot === null) {
+        playlist.status = PlaylistStatus.COMPLETE;
+      }
+
+      /**
+       * Update the playlist's manifest.
+       */
+      playlist.changed('context', true);
+
+      /**
+       * Update the last executed slot in the playlist's manifest.
+       */
+      playlist.updatedAt = new Date();
+      /**
+       * Update the last executed slot in the playlist's manifest.
+       */
+      await playlist.save();
+
+      /**
+       * Continue the playlist execution.
+       */
+      if (nextSlot !== null) {
+        await this.run(playlist);
+      }
+
+      /**
+       * Return a success response.
+       */
+      return { success: true };
     } catch (error) {
       this.logger.error('Fatal on Segue:', JSON.stringify(error, null, 2));
       throw error;
     }
+  }
+
+  /**
+   * Delivers the given playlist to the client service.
+   *
+   * @param {Playlist} playlist - The playlist to be delivered.
+   * @returns {Promise<any>} A promise that resolves with the response from the client service or rejects with an error.
+   *
+   * @throws {Error} If there is an error during the delivery process.
+   */
+  async deliver(playlist: Playlist): Promise<any> {
+    const { hostname, port } = getHostAndPort(playlist.context.origin);
+
+    /**
+     * Create a new client to communicate with the client service.
+     */
+    const client = this.clientFactory.createClient<ClientService>(
+      hostname,
+      port,
+      'client.proto',
+      'client',
+      'ClientService',
+    );
+
+    /**
+     * Deliver the payload to the client service.
+     */
+    return new Promise((resolve, reject) => {
+      client.deliver({ payload: JSON.stringify(playlist) }, (err, response) => {
+        if (err) reject(new Error(err.message));
+        else resolve(response);
+      });
+    });
   }
 }

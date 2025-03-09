@@ -3,6 +3,13 @@ import { loadSync } from '@grpc/proto-loader';
 import { Injectable } from '@nestjs/common';
 import { join } from 'path';
 
+export interface ClientService {
+  deliver(
+    data: { payload: string },
+    callback: (err: any, res: { success: boolean; result: string }) => void,
+  ): void;
+}
+
 export interface WorkerService {
   performTask(
     data: { payload: string },

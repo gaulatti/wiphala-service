@@ -25,6 +25,7 @@ export enum PlaylistStatus {
 export type Context = {
   metadata: Record<string, any>;
   sequence: Slot[];
+  origin: string;
 };
 
 @Table({ tableName: 'playlists', timestamps: true, underscored: true })

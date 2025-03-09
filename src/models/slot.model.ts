@@ -42,4 +42,10 @@ export class Slot extends Model<Slot> {
 
   @Column({ defaultValue: 0 })
   max_retries: number;
+
+  /**
+   * This is for playlist-only usage. It won't be stored in the slots table
+   * but it will be stored in every playlist context.
+   */
+  output: any;
 }

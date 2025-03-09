@@ -8,6 +8,7 @@ import { PlaylistsService } from './playlists/playlists.service';
 export interface PlaylistTrigger {
   slug: string;
   context: object;
+  origin: string;
 }
 
 /**
