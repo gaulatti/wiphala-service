@@ -61,7 +61,7 @@ export class PluginsService {
     );
 
     if (!client) {
-      console.error('❌ Failed to create gRPC client, skipping request.');
+      this.logger.error('❌ Failed to create gRPC client, skipping request.');
       return null;
     }
 
@@ -71,7 +71,7 @@ export class PluginsService {
           { payload: JSON.stringify(payload) },
           (err, response) => {
             if (err) {
-              console.error(`⚠️ gRPC request failed: ${err.message}`);
+              this.logger.error(`⚠️ gRPC request failed: ${err.message}`);
               reject(new Error(`gRPC request failed: ${err.message}`));
             } else {
               resolve(response);
@@ -79,11 +79,13 @@ export class PluginsService {
           },
         );
       } catch (error) {
-        console.error(`⚠️ Unexpected gRPC error: ${error.message}`);
+        this.logger.error(`⚠️ Unexpected gRPC error: ${error.message}`);
         reject(new Error(error.message));
       }
     }).catch((error) => {
-      console.error(`⚠️ Gracefully handling gRPC failure: ${error.message}`);
+      this.logger.error(
+        `⚠️ Gracefully handling gRPC failure: ${error.message}`,
+      );
       return null;
     });
   }

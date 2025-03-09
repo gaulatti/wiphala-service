@@ -277,7 +277,7 @@ export class PlaylistsService {
     );
 
     if (!client) {
-      console.error('❌ Failed to create gRPC client, skipping delivery.');
+      this.logger.error('❌ Failed to create gRPC client, skipping delivery.');
       return null;
     }
 
@@ -290,7 +290,7 @@ export class PlaylistsService {
           { payload: JSON.stringify(playlist) },
           (err, response) => {
             if (err) {
-              console.error(`⚠️ gRPC delivery failed: ${err.message}`);
+              this.logger.error(`⚠️ gRPC delivery failed: ${err.message}`);
               reject(new Error(`gRPC delivery failed: ${err.message}`));
             } else {
               resolve(response);
@@ -298,11 +298,13 @@ export class PlaylistsService {
           },
         );
       } catch (error) {
-        console.error(`⚠️ Unexpected gRPC error: ${error.message}`);
+        this.logger.error(`⚠️ Unexpected gRPC error: ${error.message}`);
         reject(new Error(error.message));
       }
     }).catch((error) => {
-      console.error(`⚠️ Gracefully handling gRPC failure: ${error.message}`);
+      this.logger.error(
+        `⚠️ Gracefully handling gRPC failure: ${error.message}`,
+      );
       return null;
     });
   }
