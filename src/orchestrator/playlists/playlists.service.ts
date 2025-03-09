@@ -5,7 +5,12 @@ import { Context, Playlist, PlaylistStatus } from 'src/models/playlist.model';
 import { Strategy } from 'src/models/strategy.model';
 import { JSONLogger } from 'src/utils/logger';
 import { nanoid } from '../../utils/nanoid';
-import { PlaylistRequest, PlaylistResponse } from '../orchestrator.controller';
+import {
+  PlaylistSegue,
+  PlaylistSegueResponse,
+  PlaylistTrigger,
+  PlaylistTriggerResponse,
+} from '../orchestrator.controller';
 import { PluginsService } from '../plugins/plugins.service';
 import { StrategiesService } from '../strategies/strategies.service';
 
@@ -68,7 +73,7 @@ export class PlaylistsService {
    * @returns {Promise<PlaylistResponse>} - A promise that resolves to the playlist response containing the slug and status.
    * @throws {Error} - Throws an error if the strategy with the provided slug does not exist.
    */
-  async trigger(data: PlaylistRequest): Promise<PlaylistResponse> {
+  async trigger(data: PlaylistTrigger): Promise<PlaylistTriggerResponse> {
     const { slug: strategySlug, context } = data;
 
     const strategy = await this.strategiesService.findBySlug(strategySlug);
@@ -157,5 +162,16 @@ export class PlaylistsService {
       status: PlaylistStatus.FAILED,
       updatedAt: new Date(),
     });
+  }
+
+  async segue(message: PlaylistSegue): Promise<PlaylistSegueResponse> {
+    try {
+      console.log(JSON.stringify(message, null, 2));
+
+      return Promise.resolve({ success: true });
+    } catch (error) {
+      this.logger.error('Fatal on Segue:', JSON.stringify(error, null, 2));
+      throw error;
+    }
   }
 }
