@@ -36,34 +36,48 @@ export class ClientFactory {
     protoFile: string,
     packageName: string,
     serviceName: string,
-  ): T {
-    /**
-     * Load the proto file and create the gRPC client.
-     */
-    const protoPath = join(__dirname, 'proto', protoFile);
+  ): T | null {
+    try {
+      const protoPath = join(__dirname, 'proto', protoFile);
 
-    /**
-     * Load the proto file and create the gRPC client.
-     */
-    const packageDefinition = loadSync(protoPath, {
-      keepCase: true,
-      longs: String,
-      enums: String,
-      defaults: true,
-      oneofs: true,
-    });
+      const packageDefinition = loadSync(protoPath, {
+        keepCase: true,
+        longs: String,
+        enums: String,
+        defaults: true,
+        oneofs: true,
+      });
 
-    /**
-     * Load the proto file and create the gRPC client.
-     */
-    const grpcObject = loadPackageDefinition(packageDefinition) as any;
-    const service = grpcObject[packageName][serviceName];
+      const grpcObject = loadPackageDefinition(packageDefinition) as any;
+      const service = grpcObject?.[packageName]?.[serviceName];
 
-    /**
-     * Create the gRPC client.
-     */
-    const client = new service(`${host}:${port}`, credentials.createInsecure());
+      if (!service) {
+        throw new Error(
+          `gRPC service '${serviceName}' not found in package '${packageName}'. Check your .proto file and imports.`,
+        );
+      }
 
-    return client as T;
+      const client = new service(
+        `${host}:${port}`,
+        credentials.createInsecure(),
+      );
+
+      client.waitForReady(Date.now() + 5000, (err: { message: any }) => {
+        if (err) {
+          console.error(
+            `⚠️ gRPC Client for ${serviceName} (${host}:${port}) failed to connect: ${err.message}`,
+          );
+        } else {
+          console.log(
+            `✅ gRPC Client connected to ${serviceName} at ${host}:${port}`,
+          );
+        }
+      });
+
+      return client as T;
+    } catch (error) {
+      console.error(`❌ Error creating gRPC client: ${error.message}`);
+      return null;
+    }
   }
 }

@@ -52,9 +52,6 @@ export class PluginsService {
    * @returns {Promise<any>} - A promise that resolves with the response from the worker service or rejects with an error.
    */
   async invokePlugin(plugin: Plugin, payload: object): Promise<any> {
-    /**
-     * Create a new client to communicate with the worker service.
-     */
     const client = this.clientFactory.createClient<WorkerService>(
       plugin.grpc_host,
       plugin.grpc_port,
@@ -63,17 +60,31 @@ export class PluginsService {
       'WorkerService',
     );
 
-    /**
-     * Execute the step on the worker service.
-     */
+    if (!client) {
+      console.error('❌ Failed to create gRPC client, skipping request.');
+      return null;
+    }
+
     return new Promise((resolve, reject) => {
-      client.performTask(
-        { payload: JSON.stringify(payload) },
-        (err, response) => {
-          if (err) reject(new Error(err.message));
-          else resolve(response);
-        },
-      );
+      try {
+        client.performTask(
+          { payload: JSON.stringify(payload) },
+          (err, response) => {
+            if (err) {
+              console.error(`⚠️ gRPC request failed: ${err.message}`);
+              reject(new Error(`gRPC request failed: ${err.message}`));
+            } else {
+              resolve(response);
+            }
+          },
+        );
+      } catch (error) {
+        console.error(`⚠️ Unexpected gRPC error: ${error.message}`);
+        reject(new Error(error.message));
+      }
+    }).catch((error) => {
+      console.error(`⚠️ Gracefully handling gRPC failure: ${error.message}`);
+      return null;
     });
   }
 

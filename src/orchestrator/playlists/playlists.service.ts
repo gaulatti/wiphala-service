@@ -240,6 +240,11 @@ export class PlaylistsService {
       }
 
       /**
+       * Return to Sender.
+       */
+      this.deliver(playlist);
+
+      /**
        * Return a success response.
        */
       return { success: true };
@@ -271,14 +276,34 @@ export class PlaylistsService {
       'ClientService',
     );
 
+    if (!client) {
+      console.error('❌ Failed to create gRPC client, skipping delivery.');
+      return null;
+    }
+
     /**
      * Deliver the payload to the client service.
      */
     return new Promise((resolve, reject) => {
-      client.deliver({ payload: JSON.stringify(playlist) }, (err, response) => {
-        if (err) reject(new Error(err.message));
-        else resolve(response);
-      });
+      try {
+        client.deliver(
+          { payload: JSON.stringify(playlist) },
+          (err, response) => {
+            if (err) {
+              console.error(`⚠️ gRPC delivery failed: ${err.message}`);
+              reject(new Error(`gRPC delivery failed: ${err.message}`));
+            } else {
+              resolve(response);
+            }
+          },
+        );
+      } catch (error) {
+        console.error(`⚠️ Unexpected gRPC error: ${error.message}`);
+        reject(new Error(error.message));
+      }
+    }).catch((error) => {
+      console.error(`⚠️ Gracefully handling gRPC failure: ${error.message}`);
+      return null;
     });
   }
 }
