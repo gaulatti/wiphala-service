@@ -231,15 +231,15 @@ export class PlaylistsService {
        * Update the context with the output from the segue.
        */
       context.sequence[currentSlot].output = JSON.parse(output);
-      context.save();
-
-      const nextSlot = context.sequence[currentSlot].default_next_slot_id;
+      context.markModified('sequence');
+      await context.save();
 
       /**
        * Set the next step in the playlist.
        *
        * If the next slot is null, mark the playlist as complete.
        */
+      const nextSlot = context.sequence[currentSlot].default_next_slot_id;
       playlist.current_slot_id = nextSlot;
       if (nextSlot === null) {
         playlist.status = PlaylistStatus.COMPLETE;
