@@ -139,11 +139,6 @@ export class PlaylistsService {
     const playlist = await this.playlist.create({
       strategies_id: strategy.id,
       status: PlaylistStatus.CREATED,
-      context: {
-        metadata: JSON.parse(metadata),
-        sequence: strategy.slots,
-        origin,
-      },
       slug: nanoid(),
       current_slot_id: strategy.root_slot,
     });
