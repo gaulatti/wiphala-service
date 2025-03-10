@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Logger } from 'src/decorators/logger.decorator';
+import { PlaylistContextDocument } from 'src/models/playlist.context';
 import { Playlist } from 'src/models/playlist.model';
 import { Plugin } from 'src/models/plugin.model';
 import { JSONLogger } from 'src/utils/logger';
@@ -96,11 +97,11 @@ export class PluginsService {
    * @param playlist - The playlist object containing the sequence and current slot information.
    * @throws {Error} If the current slot is not found in the playlist sequence.
    */
-  async run(playlist: Playlist) {
+  async run(playlist: Playlist, context: PlaylistContextDocument) {
     /**
      * Get the plugin from the sequence.
      */
-    const current = playlist.context.sequence.find(
+    const current = context.sequence.find(
       (item) => item.id === playlist.current_slot_id,
     );
 

@@ -1,7 +1,13 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectModel as InjectMongooseModel } from '@nestjs/mongoose';
+import { InjectModel as InjectSequelizeModel } from '@nestjs/sequelize';
+import { Model } from 'mongoose';
 import { Logger } from 'src/decorators/logger.decorator';
-import { Context, Playlist, PlaylistStatus } from 'src/models/playlist.model';
+import {
+  PlaylistContext,
+  PlaylistContextDocument,
+} from 'src/models/playlist.context';
+import { Playlist, PlaylistStatus } from 'src/models/playlist.model';
 import { Strategy } from 'src/models/strategy.model';
 import { JSONLogger } from 'src/utils/logger';
 import { getHostAndPort } from 'src/utils/network';
@@ -44,7 +50,17 @@ export class PlaylistsService {
     private readonly pluginsService: PluginsService,
     private readonly strategiesService: StrategiesService,
     private readonly clientFactory: ClientFactory,
-    @InjectModel(Playlist) private readonly playlist: typeof Playlist,
+
+    /**
+     * The injected Playlist model used for database operations.
+     */
+    @InjectSequelizeModel(Playlist) private readonly playlist: typeof Playlist,
+
+    /**
+     * The injected PlaylistContext model used for database operations.
+     */
+    @InjectMongooseModel(PlaylistContext.name)
+    private context: Model<PlaylistContextDocument>,
   ) {}
 
   /**
@@ -117,21 +133,32 @@ export class PlaylistsService {
     metadata: any,
     origin: string,
   ): Promise<Playlist> {
-    const context: Context = {
-      metadata: JSON.parse(metadata),
-      sequence: strategy.slots,
-      origin,
-    };
-
+    /**
+     * Create a new playlist in the database.
+     */
     const playlist = await this.playlist.create({
       strategies_id: strategy.id,
-      context,
       status: PlaylistStatus.CREATED,
+      context: {
+        metadata: JSON.parse(metadata),
+        sequence: strategy.slots,
+        origin,
+      },
       slug: nanoid(),
       current_slot_id: strategy.root_slot,
     });
 
-    await this.run(playlist);
+    /**
+     * Create a new context for the playlist.
+     */
+    const context: PlaylistContextDocument = await this.context.create({
+      id: playlist.id,
+      metadata: JSON.parse(metadata),
+      sequence: strategy.slots.map((slot) => slot.toJSON()),
+      origin,
+    });
+
+    await this.run(playlist, context);
 
     return playlist;
   }
@@ -142,7 +169,7 @@ export class PlaylistsService {
    * @param playlist - The playlist to be run.
    * @returns A promise that resolves when the playlist status is updated and the next method is called.
    */
-  private async run(playlist: Playlist) {
+  private async run(playlist: Playlist, context: PlaylistContextDocument) {
     /**
      * Update the playlist status to 'RUNNING'.
      */
@@ -153,7 +180,7 @@ export class PlaylistsService {
     /**
      * Call the `next` method on the `pluginsService` with the playlist.
      */
-    await this.pluginsService.run(playlist);
+    await this.pluginsService.run(playlist, context);
   }
 
   /**
@@ -193,20 +220,25 @@ export class PlaylistsService {
         throw new Error(`Playlist with slug ${slug} not found.`);
       }
 
+      const context = await this.context.findOne({ id: playlist.id });
+      if (!context) {
+        throw new Error(`Context for playlist with slug ${slug} not found.`);
+      }
+
       /**
        * Get the current slot in the playlist.
        */
-      const currentSlot = playlist.context.sequence.findIndex(
+      const currentSlot = context.sequence.findIndex(
         (item) => item.id === playlist.current_slot_id,
       );
 
       /**
        * Update the context with the output from the segue.
        */
-      playlist.context.sequence[currentSlot].output = JSON.parse(output);
+      context.sequence[currentSlot].output = JSON.parse(output);
+      context.save();
 
-      const nextSlot =
-        playlist.context.sequence[currentSlot].default_next_slot_id;
+      const nextSlot = context.sequence[currentSlot].default_next_slot_id;
 
       /**
        * Set the next step in the playlist.
@@ -217,11 +249,6 @@ export class PlaylistsService {
       if (nextSlot === null) {
         playlist.status = PlaylistStatus.COMPLETE;
       }
-
-      /**
-       * Update the playlist's manifest.
-       */
-      playlist.changed('context', true);
 
       /**
        * Update the last executed slot in the playlist's manifest.
@@ -236,13 +263,13 @@ export class PlaylistsService {
        * Continue the playlist execution.
        */
       if (nextSlot !== null) {
-        await this.run(playlist);
+        await this.run(playlist, context);
       }
 
       /**
        * Return to Sender.
        */
-      this.deliver(playlist);
+      this.deliver(playlist, context);
 
       /**
        * Return a success response.
@@ -262,8 +289,11 @@ export class PlaylistsService {
    *
    * @throws {Error} If there is an error during the delivery process.
    */
-  async deliver(playlist: Playlist): Promise<any> {
-    const { hostname, port } = getHostAndPort(playlist.context.origin);
+  async deliver(
+    playlist: Playlist,
+    context: PlaylistContextDocument,
+  ): Promise<any> {
+    const { hostname, port } = getHostAndPort(context.origin);
 
     /**
      * Create a new client to communicate with the client service.
