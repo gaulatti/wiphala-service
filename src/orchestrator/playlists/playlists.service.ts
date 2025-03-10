@@ -203,7 +203,7 @@ export class PlaylistsService {
       /**
        * Update the context with the output from the segue.
        */
-      playlist.context.sequence[currentSlot].output = output;
+      playlist.context.sequence[currentSlot].output = JSON.parse(output);
 
       const nextSlot =
         playlist.context.sequence[currentSlot].default_next_slot_id;
