@@ -112,6 +112,7 @@ export class PluginsService {
     try {
       await this.invokePlugin(current.plugin, {
         playlist,
+        context,
         talkback: getGrpcTalkbackEndpoint(),
       });
     } catch (error) {
