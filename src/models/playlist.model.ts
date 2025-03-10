@@ -60,9 +60,6 @@ export class Playlist extends Model<
   @BelongsTo(() => Slot)
   current_slot?: Slot;
 
-  @Column({ type: DataType.JSON })
-  context: Context;
-
   @Index({ unique: true })
   @Column({ type: DataType.STRING(255), allowNull: false, unique: true })
   slug: string;
