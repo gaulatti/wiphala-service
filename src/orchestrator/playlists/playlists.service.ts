@@ -232,7 +232,7 @@ export class PlaylistsService {
        */
       this.logger.log('prev', context);
       context.sequence[currentSlot].output = JSON.parse(output);
-      context.markModified('sequence');
+      context.markModified(`sequence.${currentSlot}.output`);
       const post = await context.save();
       this.logger.log('post', post);
 
