@@ -230,11 +230,9 @@ export class PlaylistsService {
       /**
        * Update the context with the output from the segue.
        */
-      this.logger.log('prev', context);
       context.sequence[currentSlot].output = JSON.parse(output);
       context.markModified(`sequence.${currentSlot}.output`);
-      const post = await context.save();
-      this.logger.log('post', post);
+      await context.save();
 
       /**
        * Set the next step in the playlist.
