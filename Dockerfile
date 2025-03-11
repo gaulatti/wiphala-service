@@ -1,5 +1,5 @@
-# Use the full Node 21 Debian-based image
-FROM public.ecr.aws/docker/library/node:21
+# Use the full Node 23 Debian-based image
+FROM public.ecr.aws/docker/library/node:23
 
 WORKDIR /app
 
