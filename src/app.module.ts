@@ -31,13 +31,19 @@ const secretsManager = new SecretsManagerClient();
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         /**
+         * Retrieve the database name from the configuration.
+         */
+        const database =
+          configService.get<string>('DB_MONGO_DATABASE') ||
+          configService.get<string>('DB_DATABASE');
+
+        /**
          * If the USE_LOCAL_MONGO_DATABASE environment variable is set to true, use the local MongoDB database.
          */
         if (configService.get<string>('USE_LOCAL_MONGO_DATABASE') === 'true') {
           const host = configService.get<string>('DB_HOST');
           const username = configService.get<string>('DB_USERNAME');
           const password = configService.get<string>('DB_PASSWORD');
-          const database = configService.get<string>('DB_DATABASE');
           const encodedUsername = encodeURIComponent(username!);
           const encodedPassword = encodeURIComponent(password!);
           return {
@@ -61,7 +67,7 @@ const secretsManager = new SecretsManagerClient();
           const { host, username, password } = JSON.parse(
             secretResponse.SecretString,
           );
-          const database = configService.get<string>('DB_DATABASE');
+
           const encodedUsername = encodeURIComponent(username);
           const encodedPassword = encodeURIComponent(password);
           return {

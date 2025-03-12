@@ -28,13 +28,25 @@ export class PlaylistsController {
   }
 
   /**
-   * Retrieves a playlist based on the provided slug.
+   * Retrieves a playlist by its slug.
    *
-   * @param {string} slug - The unique identifier for the playlist.
-   * @returns {Promise<Playlist>} The playlist corresponding to the given slug.
+   * @param {string} slug - The slug of the playlist to retrieve.
+   * @returns {Promise<object>} The playlist object combined with its context.
+   * @throws {Error} If the playlist is not found.
    */
   @Get(':slug')
-  async getPlaylist(@Param('slug') slug: string): Promise<Playlist | null> {
-    return await this.playlistService.getPlaylist(slug);
+  async getPlaylist(@Param('slug') slug: string): Promise<object> {
+    const playlist = (await this.playlistService.getPlaylist(slug))?.toJSON();
+
+    if (playlist) {
+      const context = await this.playlistService.getContext(playlist.id);
+
+      return {
+        playlist,
+        context,
+      };
+    }
+
+    throw new Error('Playlist not found');
   }
 }

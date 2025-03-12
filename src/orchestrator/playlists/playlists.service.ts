@@ -76,6 +76,18 @@ export class PlaylistsService {
   }
 
   /**
+   * Retrieves the context of a playlist by its ID.
+   *
+   * @param playlistId - The ID of the playlist to retrieve the context for.
+   * @returns A promise that resolves to the PlaylistContextDocument if found, or null if not found.
+   */
+  async getContext(
+    playlistId: number,
+  ): Promise<PlaylistContextDocument | null> {
+    return this.context.findOne({ id: playlistId });
+  }
+
+  /**
    * Retrieves a playlist by its slug.
    *
    * @param {string} slug - The unique identifier for the playlist.
@@ -215,7 +227,10 @@ export class PlaylistsService {
         throw new Error(`Playlist with slug ${slug} not found.`);
       }
 
-      const context = await this.context.findOne({ id: playlist.id });
+      /**
+       * Retrieve the context for the playlist.
+       */
+      const context = await this.getContext(playlist.id);
       if (!context) {
         throw new Error(`Context for playlist with slug ${slug} not found.`);
       }
