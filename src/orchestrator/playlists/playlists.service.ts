@@ -73,6 +73,8 @@ export class PlaylistsService {
   async getPlaylists(
     page: number,
     pageSize: number,
+    sort: string,
+    order: 'asc' | 'desc',
   ): Promise<{ rows: Playlist[]; count: number }> {
     /**
      * Calculate the offset and limit based on the page number and page size.
@@ -85,6 +87,7 @@ export class PlaylistsService {
       distinct: true,
       offset,
       limit,
+      order: sort ? [[sort, order]] : undefined,
     });
   }
 

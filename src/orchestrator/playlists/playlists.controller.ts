@@ -17,19 +17,23 @@ export class PlaylistsController {
   @Logger(PlaylistsController.name)
   private readonly logger!: JSONLogger;
 
-  @Get()
   /**
-   * Retrieves a paginated list of playlists.
+   * Retrieves a paginated list of playlists with optional sorting.
    *
    * @param {number} page - The page number to retrieve.
    * @param {number} pageSize - The number of playlists per page.
-   * @returns {Promise<{ rows: Playlist[]; count: number }>} A promise that resolves to an object containing the playlists and the total count.
+   * @param {string} sort - The field to sort the playlists by.
+   * @param {'asc' | 'desc'} order - The order of sorting, either ascending ('asc') or descending ('desc').
+   * @returns {Promise<{ rows: Playlist[]; count: number }>} A promise that resolves to an object containing the list of playlists and the total count.
    */
+  @Get()
   async getPlaylists(
     @Query('page', ParseIntPipe) page: number,
     @Query('pageSize', ParseIntPipe) pageSize: number,
+    @Query('sort') sort: string,
+    @Query('order') order: 'asc' | 'desc',
   ): Promise<{ rows: Playlist[]; count: number }> {
-    return this.playlistService.getPlaylists(page, pageSize);
+    return this.playlistService.getPlaylists(page, pageSize, sort, order);
   }
 
   /**
