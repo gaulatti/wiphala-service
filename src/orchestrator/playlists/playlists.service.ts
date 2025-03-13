@@ -64,14 +64,27 @@ export class PlaylistsService {
   ) {}
 
   /**
-   * Retrieves a list of playlists along with the total count.
+   * Retrieves a paginated list of playlists along with the total count.
    *
-   * @returns {Promise<{ rows: Playlist[]; count: number }>} A promise that resolves to an object containing an array of playlists and the total count.
+   * @param {number} page - The current page number.
+   * @param {number} pageSize - The number of playlists to retrieve per page.
+   * @returns {Promise<{ rows: Playlist[]; count: number }>} A promise that resolves to an object containing the list of playlists and the total count.
    */
-  async getPlaylists(): Promise<{ rows: Playlist[]; count: number }> {
+  async getPlaylists(
+    page: number,
+    pageSize: number,
+  ): Promise<{ rows: Playlist[]; count: number }> {
+    /**
+     * Calculate the offset and limit based on the page number and page size.
+     */
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+
     return this.playlist.findAndCountAll({
       include: [{ model: Strategy }],
       distinct: true,
+      offset,
+      limit,
     });
   }
 
