@@ -88,6 +88,7 @@ const secretsManager = new SecretsManagerClient();
           port: +3306,
           models: [join(__dirname, '**/*.model.ts')],
           autoLoadModels: true,
+          logging: false,
         };
 
         if (configService.get('USE_LOCAL_DATABASE') === 'true') {
@@ -98,6 +99,7 @@ const secretsManager = new SecretsManagerClient();
             username: configService.get('DB_USERNAME'),
             password: configService.get('DB_PASSWORD'),
             database: configService.get('DB_DATABASE'),
+            logging: true,
           };
         }
 
