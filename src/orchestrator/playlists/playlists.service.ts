@@ -2,6 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel as InjectMongooseModel } from '@nestjs/mongoose';
 import { InjectModel as InjectSequelizeModel } from '@nestjs/sequelize';
 import { Model } from 'mongoose';
+import { NotificationsService } from 'src/core/notifications/notifications.service';
 import { Logger } from 'src/decorators/logger.decorator';
 import {
   PlaylistContext,
@@ -50,6 +51,7 @@ export class PlaylistsService {
     private readonly pluginsService: PluginsService,
     private readonly strategiesService: StrategiesService,
     private readonly clientFactory: ClientFactory,
+    private readonly notificationsService: NotificationsService,
 
     /**
      * The injected Playlist model used for database operations.
@@ -181,6 +183,11 @@ export class PlaylistsService {
       origin,
     });
 
+    /**
+     * Notify the frontend to refresh playlists.
+     */
+    this.notificationsService.refreshPlaylists();
+
     await this.run(playlist, context);
 
     return playlist;
@@ -213,10 +220,17 @@ export class PlaylistsService {
    * @returns {Promise<Playlist>} A promise that resolves to the updated playlist.
    */
   async crash(playlist: Playlist): Promise<Playlist> {
-    return playlist.update({
+    const updatedPlaylist = await playlist.update({
       status: PlaylistStatus.FAILED,
       updatedAt: new Date(),
     });
+
+    /**
+     * Notify the frontend to refresh playlists.
+     */
+    this.notificationsService.refreshPlaylists();
+
+    return updatedPlaylist;
   }
 
   /**
@@ -275,6 +289,11 @@ export class PlaylistsService {
       if (nextSlot === null) {
         playlist.status = PlaylistStatus.COMPLETE;
       }
+
+      /**
+       * Notify the frontend to refresh playlists.
+       */
+      this.notificationsService.refreshPlaylists();
 
       /**
        * Update the last executed slot in the playlist's manifest.
