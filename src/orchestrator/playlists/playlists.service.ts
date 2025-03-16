@@ -362,7 +362,7 @@ export class PlaylistsService {
     return new Promise((resolve, reject) => {
       try {
         client.deliver(
-          { payload: JSON.stringify(playlist) },
+          { payload: JSON.stringify({ ...playlist, context }) },
           (err, response) => {
             if (err) {
               this.logger.error(`⚠️ gRPC delivery failed: ${err.message}`);
