@@ -66,31 +66,70 @@ export class PlaylistsService {
   ) {}
 
   /**
-   * Retrieves a paginated list of playlists along with the total count.
+   * Retrieves a paginated list of playlists with their associated contexts.
    *
-   * @param {number} page - The current page number.
-   * @param {number} pageSize - The number of playlists to retrieve per page.
-   * @returns {Promise<{ rows: Playlist[]; count: number }>} A promise that resolves to an object containing the list of playlists and the total count.
+   * @param {number} page - The page number to retrieve.
+   * @param {number} pageSize - The number of playlists per page.
+   * @param {string} sort - The field to sort the playlists by.
+   * @param {'asc' | 'desc'} order - The order of sorting, either ascending ('asc') or descending ('desc').
+   * @returns {Promise<{ count: number, rows: any[] }>} - A promise that resolves to an object containing the total count of playlists and an array of playlist objects with their associated contexts.
    */
   async getPlaylists(
     page: number,
     pageSize: number,
     sort: string,
     order: 'asc' | 'desc',
-  ): Promise<{ rows: Playlist[]; count: number }> {
+  ): Promise<{ count: number; rows: any[] }> {
     /**
      * Calculate the offset and limit based on the page number and page size.
      */
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
 
-    return this.playlist.findAndCountAll({
+    /**
+     * Retrieve the paginated list of playlists from the database.
+     */
+    const playlistsResult = await this.playlist.findAndCountAll({
       include: [{ model: Strategy }],
       distinct: true,
       offset,
       limit,
       order: sort ? [[sort, order]] : undefined,
     });
+
+    /**
+     * Retrieve the contexts for the playlists.
+     */
+    const playlistIds = playlistsResult.rows.map((playlist) => playlist.id);
+    const contexts = await this.context
+      .find({
+        id: { $in: playlistIds },
+      })
+      .lean();
+
+    /**
+     * Create a map of context objects keyed by their playlist ID.
+     */
+    const contextMap = contexts.reduce(
+      (acc, context) => {
+        acc[context.id] = context;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+
+    /**
+     * Hydrate the playlist objects with their associated contexts.
+     */
+    const hydratedRows = playlistsResult.rows.map((playlist) => {
+      const plainPlaylist = playlist.get({ plain: true });
+      return {
+        ...plainPlaylist,
+        context: contextMap[plainPlaylist.id] || null,
+      };
+    });
+
+    return { count: playlistsResult.count, rows: hydratedRows };
   }
 
   /**
