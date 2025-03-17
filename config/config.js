@@ -38,9 +38,34 @@ async function getDatabaseCredentials() {
 }
 
 module.exports = (async () => {
+  const defaultConfig = {
+    dialect: 'mysql',
+    port: +3306,
+  };
+
+  /**
+   * If the USE_LOCAL_DATABASE environment variable is set to true, use the
+   * local database credentials.
+   */
+  if (process.env.USE_LOCAL_DATABASE === 'true') {
+    return {
+      ...defaultConfig,
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      logging: true,
+    };
+  }
+
   const credentials = await getDatabaseCredentials();
 
+  /**
+   * The database credentials are retrieved from AWS Secrets Manager.
+   */
   return {
+    ...defaultConfig,
     username: credentials.username,
     password: credentials.password,
     database: process.env.DB_DATABASE,
