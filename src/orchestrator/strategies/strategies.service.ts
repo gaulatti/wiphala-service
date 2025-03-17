@@ -26,6 +26,7 @@ export class StrategiesService {
   async getStrategies(): Promise<{ rows: Strategy[]; count: number }> {
     return this.strategy.findAndCountAll({
       distinct: true,
+      include: [Slot],
     });
   }
 

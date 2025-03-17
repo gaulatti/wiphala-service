@@ -28,6 +28,9 @@ export class Slot extends Model<Slot> {
   @BelongsTo(() => Plugin)
   plugin: Plugin;
 
+  @Column({ type: DataType.STRING })
+  name: string;
+
   @Column({ type: DataType.JSON })
   metadata: object;
 
