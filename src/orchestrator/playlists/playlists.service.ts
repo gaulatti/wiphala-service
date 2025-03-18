@@ -282,7 +282,11 @@ export class PlaylistsService {
    * @returns {Promise<PlaylistSegueResponse>} - A promise that resolves to a response indicating the success of the operation.
    * @throws {Error} - Throws an error if the playlist does not exist or if any other error occurs during the operation.
    */
-  async segue({ slug, output }: PlaylistSegue): Promise<PlaylistSegueResponse> {
+  async segue({
+    slug,
+    output,
+    operation,
+  }: PlaylistSegue): Promise<PlaylistSegueResponse> {
     try {
       /**
        * Retrieve the playlist by its slug.
@@ -308,7 +312,7 @@ export class PlaylistsService {
        * Get the current slot in the playlist.
        */
       const currentSlot = context.sequence.findIndex(
-        (item) => item.id === playlist.current_slot_id,
+        (item) => item.name === operation,
       );
 
       /**

@@ -24,6 +24,7 @@ export interface PlaylistTriggerResponse {
  */
 export interface PlaylistSegue {
   slug: string;
+  operation: string;
   output: string;
 }
 
