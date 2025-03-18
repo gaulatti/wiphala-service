@@ -111,6 +111,7 @@ export class PluginsService {
 
     try {
       await this.invokePlugin(current.plugin, {
+        name: current.name,
         playlist,
         context,
         talkback: getGrpcTalkbackEndpoint(),
