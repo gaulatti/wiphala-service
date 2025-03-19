@@ -97,39 +97,7 @@ export class PlaylistsService {
       order: sort ? [[sort, order]] : undefined,
     });
 
-    /**
-     * Retrieve the contexts for the playlists.
-     */
-    const playlistIds = playlistsResult.rows.map((playlist) => playlist.id);
-    const contexts = await this.context
-      .find({
-        id: { $in: playlistIds },
-      })
-      .lean();
-
-    /**
-     * Create a map of context objects keyed by their playlist ID.
-     */
-    const contextMap = contexts.reduce(
-      (acc, context) => {
-        acc[context.id] = context;
-        return acc;
-      },
-      {} as Record<string, any>,
-    );
-
-    /**
-     * Hydrate the playlist objects with their associated contexts.
-     */
-    const hydratedRows = playlistsResult.rows.map((playlist) => {
-      const plainPlaylist = playlist.get({ plain: true });
-      return {
-        ...plainPlaylist,
-        context: contextMap[plainPlaylist.id] || null,
-      };
-    });
-
-    return { count: playlistsResult.count, rows: hydratedRows };
+    return playlistsResult;
   }
 
   /**
