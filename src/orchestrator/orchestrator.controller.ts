@@ -22,7 +22,7 @@ export interface PlaylistTriggerResponse {
 /**
  * The data required to segue to another playlist.
  */
-export interface PlaylistSegue {
+export interface SegueRequest {
   slug: string;
   operation: string;
   output: string;
@@ -31,7 +31,7 @@ export interface PlaylistSegue {
 /**
  * The response of a playlist segue.
  */
-export interface PlaylistSegueResponse {
+export interface SegueResponse {
   success: boolean;
 }
 
@@ -42,18 +42,18 @@ export class OrchestratorController {
   /**
    * Triggers a playlist based on the provided data.
    *
-   * @param {PlaylistRequest} data - The data required to trigger the playlist.
+   * @param {TriggerRequest} data - The data required to trigger the playlist.
    * @returns {Promise<PlaylistResponse>} A promise that resolves to the response of the triggered playlist.
    */
-  @GrpcMethod('OrchestratorService', 'TriggerPlaylist')
+  @GrpcMethod('WiphalaService', 'Trigger')
   async triggerPlaylist(
     data: PlaylistTrigger,
   ): Promise<PlaylistTriggerResponse> {
     return await this.playlistsService.trigger(data);
   }
 
-  @GrpcMethod('OrchestratorService', 'SeguePlaylist')
-  async seguePlaylist(data: PlaylistSegue): Promise<PlaylistSegueResponse> {
+  @GrpcMethod('WiphalaService', 'Segue')
+  async seguePlaylist(data: SegueRequest): Promise<SegueResponse> {
     return await this.playlistsService.segue(data);
   }
 }

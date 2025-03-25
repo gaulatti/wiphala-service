@@ -15,11 +15,11 @@ import { getHostAndPort } from 'src/utils/network';
 import { nanoid } from '../../utils/nanoid';
 import { ClientFactory, ClientService } from '../client.factory';
 import {
-  PlaylistSegue,
-  PlaylistSegueResponse,
+  SegueRequest,
+  SegueResponse,
   PlaylistTrigger,
   PlaylistTriggerResponse,
-} from '../orchestrator.controller';
+} from '../wiphala.controller';
 import { PluginsService } from '../plugins/plugins.service';
 import { StrategiesService } from '../strategies/strategies.service';
 
@@ -125,7 +125,7 @@ export class PlaylistsService {
   /**
    * Triggers the playlist based on the provided strategy.
    *
-   * @param {PlaylistRequest} data - The request data containing the strategy slug and context.
+   * @param {TriggerRequest} data - The request data containing the strategy slug and context.
    * @returns {Promise<PlaylistResponse>} - A promise that resolves to the playlist response containing the slug and status.
    * @throws {Error} - Throws an error if the strategy with the provided slug does not exist.
    */
@@ -246,15 +246,15 @@ export class PlaylistsService {
    * This method retrieves the playlist by its slug, updates the context with the output from the segue,
    * sets the next step in the playlist, and continues the playlist execution if applicable.
    *
-   * @param {PlaylistSegue} param0 - An object containing the slug of the playlist and the output to update.
-   * @returns {Promise<PlaylistSegueResponse>} - A promise that resolves to a response indicating the success of the operation.
+   * @param {SegueRequest} param0 - An object containing the slug of the playlist and the output to update.
+   * @returns {Promise<SegueResponse>} - A promise that resolves to a response indicating the success of the operation.
    * @throws {Error} - Throws an error if the playlist does not exist or if any other error occurs during the operation.
    */
   async segue({
     slug,
     output,
     operation,
-  }: PlaylistSegue): Promise<PlaylistSegueResponse> {
+  }: SegueRequest): Promise<SegueResponse> {
     try {
       /**
        * Retrieve the playlist by its slug.

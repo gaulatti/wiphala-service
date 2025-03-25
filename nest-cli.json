@@ -4,6 +4,6 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": [{ "include": "orchestrator/proto/*.proto"}]
+    "assets": [{ "include": "wiphala/proto/*.proto"}]
   }
 }

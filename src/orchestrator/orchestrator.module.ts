@@ -5,7 +5,7 @@ import { AuthorizationModule } from 'src/authorization/authorization.module';
 import { CoreModule } from 'src/core/core.module';
 import { DalModule } from 'src/dal/dal.module';
 import { ClientFactory } from './client.factory';
-import { OrchestratorController } from './orchestrator.controller';
+import { OrchestratorController } from './wiphala.controller';
 import { PlaylistsController } from './playlists/playlists.controller';
 import { PlaylistsService } from './playlists/playlists.service';
 import { PluginsController } from './plugins/plugins.controller';
@@ -20,11 +20,11 @@ import { StrategiesService } from './strategies/strategies.service';
     AuthorizationModule,
     ClientsModule.register([
       {
-        name: 'orchestrator',
+        name: 'wiphala',
         transport: Transport.GRPC,
         options: {
-          package: 'orchestrator',
-          protoPath: join(__dirname, './proto/orchestrator.proto'),
+          package: 'wiphala',
+          protoPath: join(__dirname, './proto/wiphala.proto'),
         },
       },
     ]),
