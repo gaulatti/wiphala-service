@@ -45,7 +45,7 @@ export class ClientFactory {
     serviceName: string,
   ): T | null {
     try {
-      const protoPath = join(__dirname, 'proto', protoFile);
+      const protoPath = join(__dirname, '../proto', protoFile);
 
       const packageDefinition = loadSync(protoPath, {
         keepCase: true,

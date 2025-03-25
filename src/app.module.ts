@@ -16,7 +16,7 @@ import { CloudWatchService } from './core/cloudwatch/cloudwatch.service';
 import { CoreModule } from './core/core.module';
 import { MetricsInterceptor } from './core/metrics/metrics.interceptor';
 import { DalModule } from './dal/dal.module';
-import { OrchestratorModule } from './wiphala/wiphala.module';
+import { OrchestratorModule } from './orchestrator/orchestrator.module';
 /**
  * The AWS Secrets Manager client.
  */

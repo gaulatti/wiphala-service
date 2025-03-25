@@ -15,11 +15,11 @@ import { getHostAndPort } from 'src/utils/network';
 import { nanoid } from '../../utils/nanoid';
 import { ClientFactory, ClientService } from '../client.factory';
 import {
-  SegueRequest,
-  SegueResponse,
   PlaylistTrigger,
   PlaylistTriggerResponse,
-} from '../wiphala.controller';
+  SegueRequest,
+  SegueResponse,
+} from '../orchestrator.controller';
 import { PluginsService } from '../plugins/plugins.service';
 import { StrategiesService } from '../strategies/strategies.service';
 
