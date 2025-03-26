@@ -310,6 +310,7 @@ export class PlaylistsService {
        * Update the last executed slot in the playlist's manifest.
        */
       playlist.updatedAt = new Date();
+
       /**
        * Update the last executed slot in the playlist's manifest.
        */
@@ -320,12 +321,12 @@ export class PlaylistsService {
        */
       if (nextSlot !== null) {
         await this.run(playlist, context);
+      } else {
+        /**
+         * Return to Sender.
+         */
+        this.deliver(playlist, context);
       }
-
-      /**
-       * Return to Sender.
-       */
-      this.deliver(playlist, context);
 
       /**
        * Return a success response.
